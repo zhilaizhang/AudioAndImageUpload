@@ -3,6 +3,8 @@ package com.example.audiorecordtest;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.example.audiorecord.util.ConversionUtils;
+import com.example.audiorecord.util.NetUtils;
 import com.example.audiorecord.util.RecordUtils;
 
 import android.support.v7.app.ActionBarActivity;
@@ -31,6 +33,7 @@ public class MainActivity extends ActionBarActivity {
 	private Button mRecordPlayButton;
 	private Button mRecordStopButton;
 	private Button mRecordDeleteButton;
+	private Button mRecordUploadButton;
 	private Context mContext;
 
 	private long mTimeStart;
@@ -58,9 +61,11 @@ public class MainActivity extends ActionBarActivity {
 		mRecordPlayButton = (Button) findViewById(R.id.record_play_button);
 		mRecordStopButton = (Button) findViewById(R.id.record_stop_button);
 		mRecordDeleteButton = (Button) findViewById(R.id.record_delete_button);
+		mRecordUploadButton = (Button) findViewById(R.id.record_upload_button);
+		
 		mRecordStatusTextView = (TextView) findViewById(R.id.record_status_textview);
 		mRecordTestTextView = (TextView) findViewById(R.id.record_test_textview);
-
+		
 	}
 
 	private void initData() {
@@ -75,6 +80,7 @@ public class MainActivity extends ActionBarActivity {
 		mRecordPlayButton.setOnClickListener(onClickListener);
 		mRecordStopButton.setOnClickListener(onClickListener);
 		mRecordDeleteButton.setOnClickListener(onClickListener);
+		mRecordUploadButton.setOnClickListener(onClickListener);
 	}
 
 	OnClickListener onClickListener = new OnClickListener() {
@@ -102,6 +108,10 @@ public class MainActivity extends ActionBarActivity {
 				mRecordStatusTextView.setText("删除音频");
 				RecordUtils.deleteRecord();
 				break;
+			case R.id.record_upload_button:
+				mRecordStatusTextView.setText("上传音频");
+				uploadRecord();
+				break;
 			}
 		}
 
@@ -119,13 +129,23 @@ public class MainActivity extends ActionBarActivity {
 		mRecordTimer.schedule(mRecordTask, 1000);
 		if (!RecordUtils.startToRecord()) {
 			if (TextUtils.isEmpty(RecordUtils.getRecordPath())) {
-				Toast.makeText(mContext, "录音失败,无法检测到SD卡", 0).show();
+				Toast.makeText(mContext, "录音失败,无法检测到SD卡", Toast.LENGTH_SHORT).show();
 			} else {
-				Toast.makeText(mContext, "录音失败", 0).show();
+				Toast.makeText(mContext, "录音失败", Toast.LENGTH_SHORT).show();
 			}
 		}
 	}
 
+	private void uploadRecord(){
+		int userID = 23114732;
+		String url = "http://st.hjapi.com/Topic/UploadAudio";
+		String audioPath = RecordUtils.getRecordPath();
+		String suffix = ".amr";
+		String token = "UThXNzwn351Gr70%2B6gNyO0a5RIr7mjzuSKqDSRGmfVE%3D";
+		byte[] uploadByte = ConversionUtils.generateRecordByte(userID,audioPath,suffix,token);
+		NetUtils.postHttp(mContext, url, uploadByte);
+	}
+	
 	Handler mHandler = new Handler() {
 
 		@Override
@@ -141,6 +161,8 @@ public class MainActivity extends ActionBarActivity {
 
 	};
 
+	
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 

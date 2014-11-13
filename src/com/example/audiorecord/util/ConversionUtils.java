@@ -3,6 +3,7 @@ package com.example.audiorecord.util;
 import java.io.BufferedInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.RandomAccessFile;
 import java.io.Serializable;
@@ -12,6 +13,7 @@ import java.util.List;
 
 import android.os.Environment;
 import android.text.TextUtils;
+import android.util.Base64;
 
 /**
  * 转换工具类，将字段转换为hashtable，将hashtable转换为json字符串等
@@ -19,7 +21,7 @@ import android.text.TextUtils;
  * @author zhangzhilai
  *
  */
-public class ConversionTools {
+public class ConversionUtils {
 	
 	/**
 	 * 将字段转换成hashtable，方便转换成json字符串(这个不通用)
@@ -28,12 +30,12 @@ public class ConversionTools {
 	 * @param token
 	 * @return
 	 */
-	public static Hashtable<String, Serializable> paramsToHashtable(int userID, String suffix, String token, byte[] byteAudio) {
+	public static Hashtable<String, Serializable> paramsToHashtable(int userID, String suffix, String token) {
 		Hashtable<String, Serializable> htable = new Hashtable<String, Serializable>();
 		htable.put("UserID", userID);
 		htable.put("FileExt", suffix);
 		htable.put("Token", token);
-		htable.put("AudioData", byteAudio);
+//		htable.put("AudioData", byteAudio);
 		return htable;
 	}
 	
@@ -126,6 +128,7 @@ public class ConversionTools {
 	 */
 	public static byte[] generateRecordByte(int userID, String audioPath, String suffix, String token){
 		String jsonPath = getUploadRecordJsonPath();
+		byte[] jsonByte = null;
 		if(!TextUtils.isEmpty(jsonPath)){
 			File file = new File(jsonPath);
 			if(file.exists()){
@@ -137,10 +140,18 @@ public class ConversionTools {
 				// TODO: handle exception
 			}
 			byte[] byteAudio = readFileFromSD(audioPath);
-			writeEnd(file,hashTableToJsonString(paramsToHashtable(userID,suffix,token,byteAudio)));
-			readFileFromSD(jsonPath);
+			String jsonNotAudioString = hashTableToJsonString(paramsToHashtable(userID,suffix,token));
+			StringBuffer stringBuffer = new StringBuffer(jsonNotAudioString);
+			stringBuffer.deleteCharAt(stringBuffer.length()-1);
+			stringBuffer.append(",\"AudioData\":\"" );
+			String paramStart = stringBuffer.toString();
+			String paramEnd = "\"}";
+			writeEnd(jsonPath,paramStart);
+			writeEnd(jsonPath,byteAudio);
+			writeEnd(jsonPath,paramEnd);
+			jsonByte = readFileFromSD(jsonPath);
 		}
-		return null;
+		return jsonByte;
 	}
 	
 	
@@ -155,11 +166,11 @@ public class ConversionTools {
 		}
 		
 	/**
-	 * 将字节数组添加文件的末尾
+	 * 将字符串添加文件的末尾
 	 * @param file
 	 * @param content
 	 */
-		public static void writeEnd(File file, String content) {
+		public static void writeEnd(String file, String content) {
 			try {
 				RandomAccessFile randomAccessFile = new RandomAccessFile(file, "rw");
 				long fileLength = randomAccessFile.length();
@@ -171,6 +182,29 @@ public class ConversionTools {
 			}
 		}
 		
+		/**
+		 * 将字节数组存入到文件中
+		 * @param fileName文件路径
+		 * @param content 字节数组
+		 */
+		public static void writeEnd(String fileName, byte[] content) {
+			try {
+				// 打开一个随机访问文件流，按读写方式
+				RandomAccessFile randomFile = new RandomAccessFile(fileName, "rw");
+				// 文件长度，字节数
+				long fileLength = randomFile.length();
+				// 将写文件指针移到文件尾。
+				randomFile.seek(fileLength);
+				String contentString = Base64.encodeToString(content,
+						Base64.DEFAULT);
+				randomFile.writeBytes(contentString);
+				randomFile.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+		
+		
 	/**
 	 * 从sd卡读取字节数组
 	 * @param filePath  文件路径
@@ -178,6 +212,7 @@ public class ConversionTools {
 	 */
 	public static byte[] readFileFromSD(String filePath){
 		File file = new File(filePath);
+		byte[] data = null;
 		if(!file.exists()){
 			return null;
 		}
@@ -185,7 +220,7 @@ public class ConversionTools {
 		InputStream inputStream = null;
 		try {
 			inputStream = new BufferedInputStream(new FileInputStream(file));
-			byte[] data = new byte[inputStream.available()];
+			data = new byte[inputStream.available()];
 			inputStream.read(data);
 		} catch (Exception e) {
 			// TODO: handle exception
@@ -199,6 +234,17 @@ public class ConversionTools {
 			}
 			
 		}
-		return null;
+		return data;
+	}
+	
+	/**
+	 * 将流转换为字符串
+	 * @return
+	 */
+	public static String covertStreamToString(InputStream inputStream){
+		String result = null;
+		
+		
+		return result;
 	}
 }

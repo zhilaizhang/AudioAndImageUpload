@@ -3,28 +3,26 @@ package com.example.audiorecordtest;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.example.audiorecord.util.ContextStrategy;
 import com.example.audiorecord.util.ConversionUtils;
-import com.example.audiorecord.util.NetUtils;
+import com.example.audiorecord.util.HttpPostRequest;
+import com.example.audiorecord.util.LogUtil;
+import com.example.audiorecord.util.NetworkRequestAsynctask;
 import com.example.audiorecord.util.RecordUtils;
 
 import android.support.v7.app.ActionBarActivity;
-import android.support.v7.app.ActionBar;
-import android.support.v4.app.Fragment;
 import android.text.TextUtils;
 import android.content.Context;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
-import android.os.Build;
 
 public class MainActivity extends ActionBarActivity {
 
@@ -36,6 +34,11 @@ public class MainActivity extends ActionBarActivity {
 	private Button mRecordUploadButton;
 	private Context mContext;
 
+	private ContextStrategy contextStrategy;
+	
+	private String mUrl;
+	private byte[] mUploadByte;
+	
 	private long mTimeStart;
 	private long mTimeEnd;
 
@@ -138,13 +141,32 @@ public class MainActivity extends ActionBarActivity {
 
 	private void uploadRecord(){
 		int userID = 23114732;
-		String url = "http://st.hjapi.com/Topic/UploadAudio";
+		mUrl = "http://st.hjapi.com/Topic/UploadAudio";
 		String audioPath = RecordUtils.getRecordPath();
 		String suffix = ".amr";
 		String token = "UThXNzwn351Gr70%2B6gNyO0a5RIr7mjzuSKqDSRGmfVE%3D";
-		byte[] uploadByte = ConversionUtils.generateRecordByte(userID,audioPath,suffix,token);
-		NetUtils.postHttp(mContext, url, uploadByte);
+		mUploadByte = ConversionUtils.generateRecordByte(userID,audioPath,suffix,token);
+		HttpPostRequest httpPostRequest = new HttpPostRequest();
+		contextStrategy = new ContextStrategy(httpPostRequest);
+		networkRequestAsynctask.execute();
+		
 	}
+	
+	NetworkRequestAsynctask  networkRequestAsynctask = new NetworkRequestAsynctask() {
+		
+		@Override
+		public String networkOperate() {
+			return contextStrategy.networkRequestStrategy(mUrl, mUploadByte);
+		}
+		
+		//网络返回后的数据处理
+		@Override
+		public void setResult(String result) {
+			System.out.println("--test--result:" + result);
+			LogUtil.d("test", "result" + result);
+		}
+		
+	};
 	
 	Handler mHandler = new Handler() {
 

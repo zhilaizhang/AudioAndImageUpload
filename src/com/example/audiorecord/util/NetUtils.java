@@ -37,39 +37,32 @@ public class NetUtils {
 	private static String mUrl;
 	private static Context mContext;
 
-	public static String postHttp(Context context, String url,
-			byte[] contentBody) {
+	public static String postHttp(Context context, String url, byte[] contentBody) {
 		String postResult = null;
 		mUrl = url;
 		mContext = context;
 		mContentBody = contentBody;
-		 PostAsynctask postAsynctask = new PostAsynctask();
-		 postAsynctask.execute();
-
+		PostAsynctask postAsynctask = new PostAsynctask();
+		postAsynctask.execute();
 
 		return postResult;
 	}
 
-	public static class PostAsynctask extends
-			AsyncTask<Integer, Integer, String> {
+	public static class PostAsynctask extends AsyncTask<Object, Integer, String> {
 
 		@Override
-		protected String doInBackground(Integer... params) {
+		protected String doInBackground(Object... params) {
 			String postResult = null;
 			InputStream inputStream = null;
 			try {
 				HttpPost httpPost = new HttpPost(mUrl);
-				ByteArrayEntity byteArrayEntity = new ByteArrayEntity(
-						mContentBody);
-				byteArrayEntity.setContentEncoding(new BasicHeader(
-						HTTP.CONTENT_TYPE, "application/json"));
+				ByteArrayEntity byteArrayEntity = new ByteArrayEntity(mContentBody);
+				byteArrayEntity.setContentEncoding(new BasicHeader(HTTP.CONTENT_TYPE, "application/json"));
 				httpPost.setEntity(byteArrayEntity);
 
 				HttpClient httpClient = new DefaultHttpClient();
-				httpClient.getParams().setParameter(
-						CoreConnectionPNames.CONNECTION_TIMEOUT, 10 * 1000);// 加入超时时间一共20秒
-				httpClient.getParams().setParameter(
-						CoreConnectionPNames.SO_TIMEOUT, 10 * 1000);
+				httpClient.getParams().setParameter(CoreConnectionPNames.CONNECTION_TIMEOUT, 10 * 1000);// 加入超时时间一共20秒
+				httpClient.getParams().setParameter(CoreConnectionPNames.SO_TIMEOUT, 10 * 1000);
 				HttpResponse httpResponse = httpClient.execute(httpPost);
 				HttpEntity httpEntity = httpResponse.getEntity();
 
@@ -88,32 +81,27 @@ public class NetUtils {
 	}
 
 	// 这个使用AsyncHttpClient进行网络操作。。。但还没进行验证
-	public static String postAsycHttp(Context context, String url,
-			byte[] contentBody) {
+	public static String postAsycHttp(Context context, String url, byte[] contentBody) {
 		AsyncHttpClient asyncHttpClient = new AsyncHttpClient();
 		RequestParams params = new RequestParams();
 		String result = null;
-		byte[] byteAudio = ConversionUtils.readFileFromSD(RecordUtils
-				.getRecordPath());
+		byte[] byteAudio = ConversionUtils.readFileFromSD(RecordUtils.getRecordPath());
 		ByteArrayEntity byteArrayEntity = new ByteArrayEntity(byteAudio);
 		InputStream inputStream = null;
 		try {
-			asyncHttpClient.post(context, url, byteArrayEntity,
-					"application/json", new AsyncHttpResponseHandler() {
+			asyncHttpClient.post(context, url, byteArrayEntity, "application/json", new AsyncHttpResponseHandler() {
 
-						@Override
-						public void onFailure(int arg0, Header[] arg1,
-								byte[] arg2, Throwable arg3) {
-							LogUtil.d(TAG, "onFailure" + arg0);
-						}
+				@Override
+				public void onFailure(int arg0, Header[] arg1, byte[] arg2, Throwable arg3) {
+					LogUtil.d(TAG, "onFailure" + arg0);
+				}
 
-						@Override
-						public void onSuccess(int arg0, Header[] arg1,
-								byte[] arg2) {
-							LogUtil.d(TAG, "onSuccess" + arg0);
-						}
+				@Override
+				public void onSuccess(int arg0, Header[] arg1, byte[] arg2) {
+					LogUtil.d(TAG, "onSuccess" + arg0);
+				}
 
-					});
+			});
 		} catch (Exception e) {
 			e.printStackTrace();
 		}

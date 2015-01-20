@@ -80,4 +80,10 @@ public class HttpPostRequest_FailPlan implements INetworkRequestStrategy {
 			mPostResult = result;
 		}
 	};
+
+	@Override
+	public String getRequestResult(String url, String contentBody) {
+		// TODO Auto-generated method stub
+		return null;
+	}
 }

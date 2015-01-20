@@ -7,4 +7,5 @@ package com.example.audiorecord.util;
  */
 public interface INetworkRequestStrategy {
 	public abstract String getRequestResult(String url, byte[] contentBody);
+	public abstract String getRequestResult(String url, String contentBody);
 }

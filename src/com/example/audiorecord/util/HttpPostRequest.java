@@ -1,6 +1,7 @@
 package com.example.audiorecord.util;
 
 import java.io.InputStream;
+import java.io.UnsupportedEncodingException;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.http.HttpEntity;
@@ -23,7 +24,6 @@ import org.apache.http.protocol.HTTP;
 public class HttpPostRequest implements INetworkRequestStrategy {
 
 	private String mUrl;
-	private String mPostResult;
 	private final String mRequestFail = "fail";
 
 	private byte[] mContenBody;
@@ -37,6 +37,17 @@ public class HttpPostRequest implements INetworkRequestStrategy {
 		return networkOperate();
 	}
 
+	public String getRequestResult(String url, String contentBody){
+		mUrl = url;
+		try {
+			mContenBody = contentBody.getBytes("UTF8");
+		} catch (UnsupportedEncodingException e) {
+			e.printStackTrace();
+			return mRequestFail;
+		}
+		return networkOperate();
+	}
+	
 	public String networkOperate() {
 		String postResult = null;
 		InputStream inputStream = null;

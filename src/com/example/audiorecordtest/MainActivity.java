@@ -1,18 +1,29 @@
 package com.example.audiorecordtest;
 
+import java.io.Serializable;
+import java.util.ArrayList;
+import java.util.Hashtable;
 import java.util.Timer;
 import java.util.TimerTask;
 
+import com.example.audiorecord.Loader.BBSCursorLoader;
 import com.example.audiorecord.util.ContextStrategy;
 import com.example.audiorecord.util.ConversionUtils;
 import com.example.audiorecord.util.HttpPostRequest;
+import com.example.audiorecord.util.JsonConvertUtils;
 import com.example.audiorecord.util.LogUtil;
 import com.example.audiorecord.util.NetworkRequestAsynctask;
 import com.example.audiorecord.util.RecordUtils;
 
+import android.support.v4.app.LoaderManager;
+import android.support.v4.content.Loader;
 import android.support.v7.app.ActionBarActivity;
 import android.text.TextUtils;
+import android.R.integer;
+import android.app.Activity;
+import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
@@ -23,8 +34,9 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.database.Cursor;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements LoaderManager.LoaderCallbacks<Cursor> {
 
 	private Button mRecordStartButton;
 	private Button mRecordEndButton;
@@ -32,13 +44,15 @@ public class MainActivity extends ActionBarActivity {
 	private Button mRecordStopButton;
 	private Button mRecordDeleteButton;
 	private Button mRecordUploadButton;
+	private Button mGetListButton;
 	private Context mContext;
 
 	private ContextStrategy contextStrategy;
-	
+
 	private String mUrl;
+	private String requestString;
 	private byte[] mUploadByte;
-	
+
 	private long mTimeStart;
 	private long mTimeEnd;
 
@@ -47,8 +61,13 @@ public class MainActivity extends ActionBarActivity {
 	private Timer mRecordTimer;
 	private TimerTask mRecordTask;
 
+	LoaderManager loaderManager = null;
+
+	private final Uri URI = Uri.parse("content://com.example.audiorecordtest/items");
+
 	private final int TIME_NUM = 0;
 	private int i = 0;
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -56,6 +75,16 @@ public class MainActivity extends ActionBarActivity {
 		findViews();
 		initData();
 		setListeners();
+		mUrl = "http://st.hjapi.com/topic/TopicListByLeagueIDType";
+		int UserID = 0;
+		long LeagueID = 136413213;
+		int CurrentPage = 1;
+		int TopicAttrType = 2;
+		int PageSize = 4;
+		Hashtable<String, Serializable> postTable = ConversionUtils.generateLanguage(LeagueID, CurrentPage, PageSize, UserID, TopicAttrType);
+		requestString = ConversionUtils.hashTableToJsonString(postTable);
+		loaderManager = getSupportLoaderManager();
+		loaderManager.initLoader(0, null, this);
 	}
 
 	private void findViews() {
@@ -65,10 +94,11 @@ public class MainActivity extends ActionBarActivity {
 		mRecordStopButton = (Button) findViewById(R.id.record_stop_button);
 		mRecordDeleteButton = (Button) findViewById(R.id.record_delete_button);
 		mRecordUploadButton = (Button) findViewById(R.id.record_upload_button);
-		
+		mGetListButton = (Button) findViewById(R.id.getlist_button);
+
 		mRecordStatusTextView = (TextView) findViewById(R.id.record_status_textview);
 		mRecordTestTextView = (TextView) findViewById(R.id.record_test_textview);
-		
+
 	}
 
 	private void initData() {
@@ -84,6 +114,7 @@ public class MainActivity extends ActionBarActivity {
 		mRecordStopButton.setOnClickListener(onClickListener);
 		mRecordDeleteButton.setOnClickListener(onClickListener);
 		mRecordUploadButton.setOnClickListener(onClickListener);
+		mGetListButton.setOnClickListener(onClickListener);
 	}
 
 	OnClickListener onClickListener = new OnClickListener() {
@@ -115,6 +146,10 @@ public class MainActivity extends ActionBarActivity {
 				mRecordStatusTextView.setText("上传音频");
 				uploadRecord();
 				break;
+			case R.id.getlist_button:
+				mRecordStatusTextView.setText("获取列表");
+				getList();
+				break;
 			}
 		}
 
@@ -139,35 +174,58 @@ public class MainActivity extends ActionBarActivity {
 		}
 	}
 
-	private void uploadRecord(){
-		int userID = 23114732;
-		mUrl = "http://st.hjapi.com/Topic/UploadAudio";
+	private void uploadRecord() {
 		String audioPath = RecordUtils.getRecordPath();
 		String suffix = ".amr";
+		mUrl = "http://st.hjapi.com/Topic/UploadAudio";
+		uploadFiles(suffix, audioPath);
+
+	}
+
+	private void uploadImage() {
+		String audioPath = RecordUtils.getRecordPath();
+		String suffix = ".png";
+		mUrl = "http://beta.st.hjapi.com/Topic/UploadImg";
+		uploadFiles(suffix, audioPath);
+	}
+
+	private void uploadFiles(String suffix, String filePath) {
+		int userID = 23114732;
 		String token = "UThXNzwn351Gr70%2B6gNyO0a5RIr7mjzuSKqDSRGmfVE%3D";
-		mUploadByte = ConversionUtils.generateRecordByte(userID,audioPath,suffix,token);
+		mUploadByte = ConversionUtils.generateRecordByte(userID, filePath, suffix, token);
 		HttpPostRequest httpPostRequest = new HttpPostRequest();
 		contextStrategy = new ContextStrategy(httpPostRequest);
 		networkRequestAsynctask.execute();
-		
+
 	}
-	
-	NetworkRequestAsynctask  networkRequestAsynctask = new NetworkRequestAsynctask() {
-		
+
+	BBSCursorLoader bbsCursorLoader;
+
+	private void getList() {
+			Cursor cursor = getContentResolver().query(URI, null, null, null, null);
+			while(cursor.moveToNext()){
+				for(int i = 0; i < cursor.getColumnCount(); i++){
+					System.out.println("--test888--i= " + i + " values: " + cursor.getString(i) );
+				}
+			}
+	}
+
+	NetworkRequestAsynctask networkRequestAsynctask = new NetworkRequestAsynctask() {
+
 		@Override
 		public String networkOperate() {
 			return contextStrategy.networkRequestStrategy(mUrl, mUploadByte);
 		}
-		
-		//网络返回后的数据处理
+
+		// 网络返回后的数据处理
 		@Override
 		public void setResult(String result) {
 			System.out.println("--test--result:" + result);
 			LogUtil.d("test", "result" + result);
 		}
-		
+
 	};
-	
+
 	Handler mHandler = new Handler() {
 
 		@Override
@@ -183,8 +241,6 @@ public class MainActivity extends ActionBarActivity {
 
 	};
 
-	
-	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 
@@ -203,6 +259,47 @@ public class MainActivity extends ActionBarActivity {
 			return true;
 		}
 		return super.onOptionsItemSelected(item);
+	}
+
+	@Override
+	public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+		System.out.println("test8888 onCreateLoader");
+		bbsCursorLoader = new BBSCursorLoader(mContext) {
+			public String networkOperate() {
+				LogUtil.d("test", "test8888 networkOperate");
+				System.out.println("test8888 networkOperate");
+				HttpPostRequest httpPostRequest = new HttpPostRequest();
+				contextStrategy = new ContextStrategy(httpPostRequest);
+				return contextStrategy.networkRequestStrategy(mUrl, requestString);
+			}
+
+			public Cursor jsonToCursor(String jsonString) {
+				LogUtil.d("test", "test8888 jsonToCursor");
+				System.out.println("test8888 jsonString" + jsonString);
+				ArrayList arrylist = JsonConvertUtils.getContentList(jsonString);
+				System.out.println("test8888 arrylist" + arrylist);
+				ContentValues[] contentValues = JsonConvertUtils.listToContentValues(arrylist);
+				System.out.println("test8888 contentValues" + contentValues);
+//				long no = getContentResolver().insert(URI, contentValues);
+				long no = getContentResolver().bulkInsert(URI, contentValues);
+				System.out.println("test888  no:" + no);
+				return null;
+			}
+		};
+		return bbsCursorLoader;
+	}
+
+
+	@Override
+	public void onLoadFinished(Loader<Cursor> arg0, Cursor arg1) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void onLoaderReset(Loader<Cursor> arg0) {
+		// TODO Auto-generated method stub
+		
 	}
 
 }

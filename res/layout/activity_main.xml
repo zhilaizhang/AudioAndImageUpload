@@ -37,6 +37,12 @@
 	    android:layout_width="wrap_content"
         android:layout_height="wrap_content"
 	    android:text="上传音频"/>
+	<Button 
+	    android:id="@+id/getlist_button"
+	    android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+	    android:text="获取列表"/>
+
 	<TextView 
 	    android:text="现在的状态："
 	    android:layout_width="wrap_content"

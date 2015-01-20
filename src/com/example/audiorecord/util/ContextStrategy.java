@@ -11,4 +11,7 @@ public class ContextStrategy {
 	public String  networkRequestStrategy(String url, byte[] contentBody){
 		return this.networkRequestStrategy.getRequestResult(url, contentBody);
 	} 
+	public String  networkRequestStrategy(String url, String contentBody){
+		return this.networkRequestStrategy.getRequestResult(url, contentBody);
+	} 
 }

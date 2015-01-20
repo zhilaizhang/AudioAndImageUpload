@@ -1,5 +1,6 @@
 package com.example.audiorecordtest;
 
+<<<<<<< HEAD
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Hashtable;
@@ -24,14 +25,14 @@ import android.app.Activity;
 import android.content.ContentValues;
 import android.content.Context;
 import android.net.Uri;
+=======
+import android.app.Activity;
+import android.content.Intent;
+>>>>>>> ea954dad43f38dda3e6b3b326e8564ce6a12ff12
 import android.os.Bundle;
-import android.os.Handler;
-import android.os.Message;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.View;
-import android.view.View.OnClickListener;
 import android.widget.Button;
+<<<<<<< HEAD
 import android.widget.TextView;
 import android.widget.Toast;
 import android.database.Cursor;
@@ -55,12 +56,17 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
 
 	private long mTimeStart;
 	private long mTimeEnd;
+=======
 
-	private TextView mRecordStatusTextView;
-	private TextView mRecordTestTextView;
-	private Timer mRecordTimer;
-	private TimerTask mRecordTask;
+public class MainActivity extends Activity implements View.OnClickListener {
 
+	public static final String TAG = "WelcomeActivity";
+>>>>>>> ea954dad43f38dda3e6b3b326e8564ce6a12ff12
+
+	private Button mToAudioButton;
+	private Button mToPictureButton;
+
+<<<<<<< HEAD
 	LoaderManager loaderManager = null;
 
 	private final Uri URI = Uri.parse("content://com.example.audiorecordtest/items");
@@ -68,12 +74,13 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
 	private final int TIME_NUM = 0;
 	private int i = 0;
 
+=======
+>>>>>>> ea954dad43f38dda3e6b3b326e8564ce6a12ff12
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_main);
+		setContentView(R.layout.activity_welcome);
 		findViews();
-		initData();
 		setListeners();
 		mUrl = "http://st.hjapi.com/topic/TopicListByLeagueIDType";
 		int UserID = 0;
@@ -88,6 +95,7 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
 	}
 
 	private void findViews() {
+<<<<<<< HEAD
 		mRecordStartButton = (Button) findViewById(R.id.record_start_button);
 		mRecordEndButton = (Button) findViewById(R.id.record_end_button);
 		mRecordPlayButton = (Button) findViewById(R.id.record_play_button);
@@ -247,18 +255,31 @@ public class MainActivity extends ActionBarActivity implements LoaderManager.Loa
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
 		return true;
+=======
+		mToAudioButton = (Button) findViewById(R.id.btn_audio);
+		mToPictureButton = (Button) findViewById(R.id.btn_picture);
+	}
+
+	private void setListeners() {
+		mToAudioButton.setOnClickListener(this);
+		mToPictureButton.setOnClickListener(this);
+>>>>>>> ea954dad43f38dda3e6b3b326e8564ce6a12ff12
 	}
 
 	@Override
-	public boolean onOptionsItemSelected(MenuItem item) {
-		// Handle action bar item clicks here. The action bar will
-		// automatically handle clicks on the Home/Up button, so long
-		// as you specify a parent activity in AndroidManifest.xml.
-		int id = item.getItemId();
-		if (id == R.id.action_settings) {
-			return true;
+	public void onClick(View v) {
+		Intent intent = new Intent();
+		switch (v.getId()) {
+		case R.id.btn_audio:
+			intent.setClass(MainActivity.this, AudioActivity.class);
+			break;
+		case R.id.btn_picture:
+			intent.setClass(MainActivity.this, PictureActivity.class);
+			break;
+		default:
+			break;
 		}
-		return super.onOptionsItemSelected(item);
+		startActivity(intent);
 	}
 
 	@Override

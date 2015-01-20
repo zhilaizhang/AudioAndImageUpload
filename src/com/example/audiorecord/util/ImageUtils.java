@@ -1,5 +1,6 @@
 package com.example.audiorecord.util;
 
+<<<<<<< HEAD
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
@@ -11,11 +12,19 @@ import android.os.Environment;
 
 /**
  * 图片的操作类
+=======
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+
+/**
+ * 图片操作工具类
+>>>>>>> ea954dad43f38dda3e6b3b326e8564ce6a12ff12
  * @author zhangzhilai
  *
  */
 public class ImageUtils {
 	
+<<<<<<< HEAD
 	public static final String TAG = "ImageUtils";
 	
 	/**
@@ -90,5 +99,17 @@ public class ImageUtils {
 		}
 		return inSampleSize;
 	}
+=======
+	public static Bitmap getBitmapFromFile(String filePath){
+		if(TextUtils.isEmpty(filePath)){
+			return null;
+		}
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inSampleSize = 3;
+		Bitmap bmpBitmap = BitmapFactory.decodeFile(filePath, options);
+		return bmpBitmap;
+	}
+	
+>>>>>>> ea954dad43f38dda3e6b3b326e8564ce6a12ff12
 	
 }
